@@ -131,6 +131,12 @@ rules.set('Make extends always an array, if it is defined', schema => {
   }
 })
 
+rules.set('Add false `readOnly` property if none is defined', schema => {
+  if (typeof schema === 'object' && !('readOnly' in schema)) {
+    schema.readOnly = false
+  }
+})
+
 export function normalize(rootSchema: LinkedJSONSchema, filename: string, options: Options): NormalizedJSONSchema {
   rules.forEach(rule => traverse(rootSchema, schema => rule(schema, filename, options)))
   return rootSchema as NormalizedJSONSchema

@@ -87,6 +87,7 @@ export interface NormalizedJSONSchema extends LinkedJSONSchema {
   oneOf?: NormalizedJSONSchema[]
   not?: NormalizedJSONSchema
   required: string[]
+  readOnly: boolean
 }
 
 export interface EnumJSONSchema extends NormalizedJSONSchema {

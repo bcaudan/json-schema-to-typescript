@@ -16,12 +16,14 @@
     "type": "object",
     "properties": {
       "myProperty": {
+        "readOnly": false,
         "items": "string",
         "minItems": 0,
         "type": "array"
       }
     },
     "additionalProperties": false,
+    "readOnly": false,
     "required": []
   }
 }

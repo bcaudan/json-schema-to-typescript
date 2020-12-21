@@ -353,7 +353,7 @@ function parseSchema(
     ast: parse(value, options, key, processed, usedNames),
     isPatternProperty: false,
     isRequired: includes(schema.required || [], key),
-    isReadOnly: !!value.readOnly,
+    isReadOnly: value.readOnly,
     isUnreachableDefinition: false,
     keyName: key
   }))
@@ -375,7 +375,7 @@ via the \`patternProperty\` "${key}".`
           ast,
           isPatternProperty: !singlePatternProperty,
           isRequired: singlePatternProperty || includes(schema.required || [], key),
-          isReadOnly: !!value.readOnly,
+          isReadOnly: value.readOnly,
           isUnreachableDefinition: false,
           keyName: singlePatternProperty ? '[k: string]' : key
         }
@@ -394,7 +394,7 @@ via the \`definition\` "${key}".`
           ast,
           isPatternProperty: false,
           isRequired: includes(schema.required || [], key),
-          isReadOnly: !!value.readOnly,
+          isReadOnly: value.readOnly,
           isUnreachableDefinition: true,
           keyName: key
         }

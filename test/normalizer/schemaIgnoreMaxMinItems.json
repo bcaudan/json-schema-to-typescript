@@ -157,68 +157,88 @@
         "type": "object",
         "properties": {
           "unbounded": {
+            "readOnly": false,
             "type": "array"
           },
           "minOnly": {
+            "readOnly": false,
             "type": "array"
           },
           "maxOnly": {
+            "readOnly": false,
             "type": "array"
           },
           "minAndMax": {
+            "readOnly": false,
             "type": "array"
           }
         },
         "additionalProperties": false,
+        "readOnly": false,
         "required": []
       },
       "untypedArray": {
         "type": "object",
         "properties": {
           "unbounded": {
+            "readOnly": false,
             "type": ["array", "string"]
           },
           "minOnly": {
+            "readOnly": false,
             "type": ["array", "string"]
           },
           "maxOnly": {
+            "readOnly": false,
             "type": ["array", "string"]
           },
           "minAndMax": {
+            "readOnly": false,
             "type": ["array", "string"]
           }
         },
         "additionalProperties": false,
+        "readOnly": false,
         "required": []
       },
       "typed": {
         "type": "object",
         "properties": {
           "unbounded": {
+            "readOnly": false,
             "items": {
+              "readOnly": false,
               "type": "string"
             }
           },
           "minOnly": {
+            "readOnly": false,
             "items": {
+              "readOnly": false,
               "type": "string"
             },
             "additionalItems": {
+              "readOnly": false,
               "type": "string"
             }
           },
           "maxOnly": {
+            "readOnly": false,
             "items": {
+              "readOnly": false,
               "type": "string"
             }
           },
           "minAndMax": {
+            "readOnly": false,
             "items": {
+              "readOnly": false,
               "type": "string"
             }
           }
         },
         "additionalProperties": false,
+        "readOnly": false,
         "required": []
       },
       "anyOf": {
@@ -227,56 +247,71 @@
           "unbounded": {
             "anyOf": [
               {
+                "readOnly": false,
                 "items": {
+                  "readOnly": false,
                   "type": "string"
                 }
               }
             ],
             "additionalProperties": false,
+            "readOnly": false,
             "required": []
           },
           "minOnly": {
             "anyOf": [
               {
+                "readOnly": false,
                 "items": {
+                  "readOnly": false,
                   "type": "string"
                 },
                 "additionalItems": {
+                  "readOnly": false,
                   "type": "string"
                 }
               }
             ],
             "additionalProperties": false,
+            "readOnly": false,
             "required": []
           },
           "maxOnly": {
             "anyOf": [
               {
+                "readOnly": false,
                 "items": {
+                  "readOnly": false,
                   "type": "string"
                 }
               }
             ],
             "additionalProperties": false,
+            "readOnly": false,
             "required": []
           },
           "minAndMax": {
             "anyOf": [
               {
+                "readOnly": false,
                 "items": {
+                  "readOnly": false,
                   "type": "string"
                 }
               }
             ],
             "additionalProperties": false,
+            "readOnly": false,
             "required": []
           }
         },
         "additionalProperties": false,
+        "readOnly": false,
         "required": []
       }
     },
     "additionalProperties": false,
+    "readOnly": false,
     "required": []
   }
 }

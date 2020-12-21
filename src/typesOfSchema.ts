@@ -36,8 +36,8 @@ const matchers: Record<SchemaType, (schema: JSONSchema) => boolean> = {
     return 'allOf' in schema
   },
   ANY(schema) {
-    if (Object.keys(schema).length === 0) {
-      // The empty schema {} validates any value
+    if (Object.keys(schema).length === 1) {
+      // The empty schema { readOnly: _ } validates any value
       // @see https://json-schema.org/draft-07/json-schema-core.html#rfc.section.4.3.1
       return true
     }

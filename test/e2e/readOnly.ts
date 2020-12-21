@@ -14,7 +14,8 @@ export const input = {
       readOnly: true
     },
     name: {type: 'string', readOnly: true},
-    website: {type: 'string', readOnly: false}
+    website: {type: 'string', readOnly: false},
+    foo: {}
   },
   required: ['name', 'location'],
   type: 'object'

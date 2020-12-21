@@ -22,20 +22,25 @@
   "out": {
     "additionalProperties": true,
     "id": "RedundantNull",
+    "readOnly": false,
     "required": [],
     "type": "object",
     "properties": {
       "noopMissingType": {
+        "readOnly": false,
         "enum": ["foo", "bar"]
       },
       "noopMissingEnum": {
+        "readOnly": false,
         "type": ["null", "string"]
       },
       "noopNonNullableEnum": {
+        "readOnly": false,
         "type": "string",
         "enum": ["foo", "bar", null]
       },
       "dedupeNulls": {
+        "readOnly": false,
         "type": "string",
         "enum": ["foo", "bar", null]
       }

@@ -23,7 +23,8 @@
     "friend": {
       "properties": {
         "knowsFrom": {
-          "enum": ["work", "school", "other"]
+          "enum": ["work", "school", "other"],
+          "readOnly": false
         }
       },
       "additionalProperties": true,
@@ -32,11 +33,13 @@
     },
     "properties": {
       "firstName": {
-        "type": "string"
+        "type": "string",
+        "readOnly": false
       }
     },
     "additionalProperties": true,
     "required": ["firstName"],
-    "id": "DefaultID"
+    "id": "DefaultID",
+    "readOnly": false
   }
 }

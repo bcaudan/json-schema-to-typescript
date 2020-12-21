@@ -11,6 +11,7 @@
     "id": "foo",
     "type": "object",
     "required": [],
+    "readOnly": false,
     "additionalProperties": true
   }
 }

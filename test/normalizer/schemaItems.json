@@ -83,118 +83,147 @@
     "type": "object",
     "properties": {
       "untypedUnbounded": {
+        "readOnly": false,
         "type": "array",
         "minItems": 0
       },
       "typedUnbounded": {
         "items": {
+          "readOnly": false,
           "type": "string"
         },
-        "minItems": 0
+        "minItems": 0,
+        "readOnly": false
       },
       "typedMinBounded": {
         "items": [
           {
+            "readOnly": false,
             "type": "string"
           },
           {
+            "readOnly": false,
             "type": "string"
           }
         ],
         "additionalItems": {
+          "readOnly": false,
           "type": "string"
         },
-        "minItems": 2
+        "minItems": 2,
+        "readOnly": false
       },
       "typedMaxBounded": {
         "items": [
           {
+            "readOnly": false,
             "type": "string"
           },
           {
+            "readOnly": false,
             "type": "string"
           }
         ],
         "maxItems": 2,
-        "minItems": 0
+        "minItems": 0,
+        "readOnly": false
       },
       "typedMinMaxBounded": {
         "items": [
           {
+            "readOnly": false,
             "type": "string"
           },
           {
+            "readOnly": false,
             "type": "string"
           },
           {
+            "readOnly": false,
             "type": "string"
           },
           {
+            "readOnly": false,
             "type": "string"
           },
           {
+            "readOnly": false,
             "type": "string"
           }
         ],
         "minItems": 2,
-        "maxItems": 5
+        "maxItems": 5,
+        "readOnly": false
       },
       "moreItemsThanMax": {
         "items": [
           {
+            "readOnly": false,
             "type": "string"
           }
         ],
         "maxItems": 1,
-        "minItems": 0
+        "minItems": 0,
+        "readOnly": false
       },
       "itemAnyOf": {
         "items": [
           {
             "anyOf": [
               {
+                "readOnly": false,
                 "type": "string"
               },
               {
+                "readOnly": false,
                 "type": "number"
               }
             ],
             "additionalProperties": false,
+            "readOnly": false,
             "required": []
           }
         ],
         "maxItems": 1,
-        "minItems": 0
+        "minItems": 0,
+        "readOnly": false
       },
       "baseAnyOf": {
         "anyOf": [
           {
             "items": [
               {
+                "readOnly": false,
                 "type": "string"
               }
             ],
             "maxItems": 1,
-            "minItems": 0
+            "minItems": 0,
+            "readOnly": false
           },
           {
             "items": [
               {
+                "readOnly": false,
                 "type": "number"
               },
               {
+                "readOnly": false,
                 "type": "number"
               }
             ],
             "maxItems": 2,
-            "minItems": 0
+            "minItems": 0,
+            "readOnly": false
           }
         ],
         "additionalProperties": false,
+        "readOnly": false,
         "required": []
       }
     },
     "additionalProperties": false,
+    "readOnly": false,
     "required": []
   }
 }

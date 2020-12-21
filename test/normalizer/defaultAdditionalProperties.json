@@ -16,11 +16,13 @@
     "type": "object",
     "properties": {
       "a": {
+        "readOnly": false,
         "type": "integer",
         "id": "a"
       }
     },
     "required": [],
+    "readOnly": false,
     "additionalProperties": true
   }
 }

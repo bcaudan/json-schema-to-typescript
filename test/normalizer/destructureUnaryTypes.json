@@ -23,17 +23,20 @@
     "type": "object",
     "definitions": {
       "a": {
+        "readOnly": false,
         "type": "integer",
         "id": "a"
       }
     },
     "properties": {
       "b": {
+        "readOnly": false,
         "type": "string",
         "id": "b"
       }
     },
     "additionalProperties": true,
+    "readOnly": false,
     "required": []
   }
 }
