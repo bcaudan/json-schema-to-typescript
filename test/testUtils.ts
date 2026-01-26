@@ -1,6 +1,5 @@
 import test from 'ava'
 import {link} from '../src/linker'
-import {LinkedJSONSchema} from '../src/types/JSONSchema'
 import {pathTransform, generateName, isSchemaLike} from '../src/utils'
 
 export function run() {
@@ -28,20 +27,20 @@ export function run() {
       type: 'object',
       properties: {
         firstName: {
-          type: 'string'
+          type: 'string',
         },
         lastName: {
           id: 'lastName',
-          type: 'string'
-        }
+          type: 'string',
+        },
       },
-      required: ['firstName', 'lastName']
+      required: ['firstName', 'lastName'],
     })
     t.is(isSchemaLike(schema), true)
-    t.is(isSchemaLike([] as any as LinkedJSONSchema), false)
-    t.is(isSchemaLike(schema.properties as LinkedJSONSchema), false)
-    t.is(isSchemaLike(schema.required as any as LinkedJSONSchema), false)
-    t.is(isSchemaLike(schema.title as any as LinkedJSONSchema), false)
+    t.is(isSchemaLike([]), false)
+    t.is(isSchemaLike(schema.properties), false)
+    t.is(isSchemaLike(schema.required), false)
+    t.is(isSchemaLike(schema.title), false)
     t.is(isSchemaLike(schema.properties!.firstName), true)
     t.is(isSchemaLike(schema.properties!.lastName), true)
   })

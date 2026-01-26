@@ -1,23 +1,32 @@
 #!/usr/bin/env node
 
-import minimist = require('minimist')
-import getStdin from 'get-stdin'
-import {readFile, writeFile, existsSync, lstatSync, readdirSync} from 'mz/fs'
-import * as mkdirp from 'mkdirp'
-import glob from 'glob-promise'
-import isGlob = require('is-glob')
-import {join, resolve, dirname, basename} from 'path'
-import {compile, Options} from './index'
-import {pathTransform, error} from './utils'
+import minimist from 'minimist'
+import {readFileSync, writeFileSync, existsSync, lstatSync, readdirSync, mkdirSync} from 'fs'
+import {glob, isDynamicPattern} from 'tinyglobby'
+import {join, resolve, dirname} from 'path'
+import {compile, DEFAULT_OPTIONS, Options} from './index'
+import {pathTransform, error, parseFileAsJSONSchema, justName} from './utils'
 
 main(
   minimist(process.argv.slice(2), {
     alias: {
       help: ['h'],
       input: ['i'],
-      output: ['o']
-    }
-  })
+      output: ['o'],
+    },
+    boolean: [
+      'additionalProperties',
+      'declareExternallyReferenced',
+      'enableConstEnums',
+      'format',
+      'ignoreMinAndMaxItems',
+      'strictIndexSignatures',
+      'unknownAny',
+      'unreachableDefinitions',
+    ],
+    default: DEFAULT_OPTIONS,
+    string: ['bannerComment', 'cwd'],
+  }),
 )
 
 async function main(argv: minimist.ParsedArgs) {
@@ -29,12 +38,12 @@ async function main(argv: minimist.ParsedArgs) {
   const argIn: string = argv._[0] || argv.input
   const argOut: string | undefined = argv._[1] || argv.output // the output can be omitted so this can be undefined
 
-  const ISGLOB = isGlob(argIn)
+  const ISGLOB = argIn && isDynamicPattern(argIn)
   const ISDIR = isDir(argIn)
 
   if ((ISGLOB || ISDIR) && argOut && argOut.includes('.d.ts')) {
     throw new ReferenceError(
-      `You have specified a single file ${argOut} output for a multi file input ${argIn}. This feature is not yet supported, refer to issue #272 (https://github.com/bcherny/json-schema-to-typescript/issues/272)`
+      `You have specified a single file ${argOut} output for a multi file input ${argIn}. This feature is not yet supported, refer to issue #272 (https://github.com/bcherny/json-schema-to-typescript/issues/272)`,
     )
   }
 
@@ -60,11 +69,11 @@ function isDir(path: string): boolean {
 }
 
 async function processGlob(argIn: string, argOut: string | undefined, argv: Partial<Options>) {
-  const files = await glob(argIn) // execute glob pattern match
+  const files = await glob(argIn, {expandDirectories: false}) // execute glob pattern match
 
   if (files.length === 0) {
     throw ReferenceError(
-      `You passed a glob pattern "${argIn}", but there are no files that match that pattern in ${process.cwd()}`
+      `You passed a glob pattern "${argIn}", but there are no files that match that pattern in ${process.cwd()}`,
     )
   }
 
@@ -72,12 +81,12 @@ async function processGlob(argIn: string, argOut: string | undefined, argv: Part
   const results = await Promise.all(
     files.map(async file => {
       return [file, await processFile(file, argv)] as const
-    })
+    }),
   )
 
   // careful to do this serially
   results.forEach(([file, result]) => {
-    const outputPath = argOut && `${argOut}/${basename(file, '.json')}.d.ts`
+    const outputPath = argOut && `${argOut}/${justName(file)}.d.ts`
     outputResult(result, outputPath)
   })
 }
@@ -94,28 +103,29 @@ async function processDir(argIn: string, argOut: string | undefined, argv: Parti
         const outputPath = pathTransform(argOut, argIn, file)
         return [file, await processFile(file, argv), outputPath] as const
       }
-    })
+    }),
   )
 
   // careful to do this serially
   results.forEach(([file, result, outputPath]) =>
-    outputResult(result, outputPath ? `${outputPath}/${basename(file, '.json')}.d.ts` : undefined)
+    outputResult(result, outputPath ? `${outputPath}/${justName(file)}.d.ts` : undefined),
   )
 }
 
-async function outputResult(result: string, outputPath: string | undefined): Promise<void> {
+function outputResult(result: string, outputPath: string | undefined): void {
   if (!outputPath) {
     process.stdout.write(result)
   } else {
     if (!isDir(dirname(outputPath))) {
-      mkdirp.sync(dirname(outputPath))
+      mkdirSync(dirname(outputPath), {recursive: true})
     }
-    return await writeFile(outputPath, result)
+    return writeFileSync(outputPath, result)
   }
 }
 
 async function processFile(argIn: string, argv: Partial<Options>): Promise<string> {
-  const schema = JSON.parse(await readInput(argIn))
+  const {filename, contents} = await readInput(argIn)
+  const schema = parseFileAsJSONSchema(filename, contents)
   return compile(schema, argIn, argv)
 }
 
@@ -129,11 +139,23 @@ function getPaths(path: string, paths: string[] = []) {
   return paths
 }
 
-function readInput(argIn?: string) {
+async function readInput(argIn?: string): Promise<{filename: string | null; contents: string}> {
   if (!argIn) {
-    return getStdin()
+    return {
+      filename: null,
+      contents: await readStream(process.stdin),
+    }
   }
-  return readFile(resolve(process.cwd(), argIn), 'utf-8')
+  return {
+    filename: argIn,
+    contents: readFileSync(resolve(process.cwd(), argIn), 'utf-8'),
+  }
+}
+
+async function readStream(stream: NodeJS.ReadStream): Promise<string> {
+  const chunks: Uint8Array[] = []
+  for await (const chunk of stream) chunks.push(chunk)
+  return Buffer.concat(chunks).toString('utf8')
 }
 
 function printHelp() {
@@ -159,6 +181,8 @@ Boolean values can be set to false using the 'no-' prefix.
       Declare external schemas referenced via '$ref'?
   --enableConstEnums
       Prepend enums with 'const'?
+  --inferStringEnumKeysFromValues
+      Create enums from JSON enums instead of union types
   --format
       Format code? Set this to false to improve performance.
   --maxItems
@@ -172,6 +196,6 @@ Boolean values can be set to false using the 'no-' prefix.
       Output unknown type instead of any type
   --unreachableDefinitions
       Generates code for definitions that aren't referenced by the schema
-`
+`,
   )
 }

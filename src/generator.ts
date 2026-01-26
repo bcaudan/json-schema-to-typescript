@@ -12,7 +12,7 @@ import {
   TIntersection,
   TNamedInterface,
   TUnion,
-  T_UNKNOWN
+  T_UNKNOWN,
 } from './types/AST'
 import {log, toSafeString} from './utils'
 
@@ -22,7 +22,7 @@ export function generate(ast: AST, options = DEFAULT_OPTIONS): string {
       options.bannerComment,
       declareNamedTypes(ast, options, ast.standaloneName!),
       declareNamedInterfaces(ast, options, ast.standaloneName!),
-      declareEnums(ast, options)
+      declareEnums(ast, options),
     ]
       .filter(Boolean)
       .join('\n\n') + '\n'
@@ -78,7 +78,7 @@ function declareNamedInterfaces(ast: AST, options: Options, rootASTName: string,
         getSuperTypesAndParams(ast)
           .map(ast => declareNamedInterfaces(ast, options, rootASTName, processed))
           .filter(Boolean)
-          .join('\n')
+          .join('\n'),
       ]
         .filter(Boolean)
         .join('\n')
@@ -112,7 +112,7 @@ function declareNamedTypes(ast: AST, options: Options, rootASTName: string, proc
     case 'ARRAY':
       return [
         declareNamedTypes(ast.params, options, rootASTName, processed),
-        hasStandaloneName(ast) ? generateStandaloneType(ast, options) : undefined
+        hasStandaloneName(ast) ? generateStandaloneType(ast, options) : undefined,
       ]
         .filter(Boolean)
         .join('\n')
@@ -123,7 +123,7 @@ function declareNamedTypes(ast: AST, options: Options, rootASTName: string, proc
         .map(
           ast =>
             (ast.standaloneName === rootASTName || options.declareExternallyReferenced) &&
-            declareNamedTypes(ast, options, rootASTName, processed)
+            declareNamedTypes(ast, options, rootASTName, processed),
         )
         .filter(Boolean)
         .join('\n')
@@ -138,7 +138,7 @@ function declareNamedTypes(ast: AST, options: Options, rootASTName: string, proc
           .join('\n'),
         'spreadParam' in ast && ast.spreadParam
           ? declareNamedTypes(ast.spreadParam, options, rootASTName, processed)
-          : undefined
+          : undefined,
       ]
         .filter(Boolean)
         .join('\n')
@@ -184,6 +184,8 @@ function generateRawType(ast: AST, options: Options): string {
       return generateSetOperation(ast, options)
     case 'LITERAL':
       return JSON.stringify(ast.params)
+    case 'NEVER':
+      return 'never'
     case 'NUMBER':
       return 'number'
     case 'NULL':
@@ -298,16 +300,16 @@ function generateInterface(ast: TInterface, options: Options): string {
       .filter(_ => !_.isPatternProperty && !_.isUnreachableDefinition)
       .map(
         ({isRequired, isReadOnly, keyName, ast}) =>
-          [isRequired, isReadOnly, keyName, ast, generateType(ast, options)] as [boolean, boolean, string, AST, string]
+          [isRequired, isReadOnly, keyName, ast, generateType(ast, options)] as [boolean, boolean, string, AST, string],
       )
       .map(
         ([isRequired, isReadOnly, keyName, ast, type]) =>
-          (hasComment(ast) && !ast.standaloneName ? generateComment(ast.comment) + '\n' : '') +
+          (hasComment(ast) && !ast.standaloneName ? generateComment(ast.comment, ast.deprecated) + '\n' : '') +
           (isReadOnly ? 'readonly ' : '') +
           escapeKeyName(keyName) +
           (isRequired ? '' : '?') +
           ': ' +
-          (hasStandaloneName(ast) ? toSafeString(type) : type)
+          type,
       )
       .join('\n') +
     '\n' +
@@ -315,18 +317,33 @@ function generateInterface(ast: TInterface, options: Options): string {
   )
 }
 
-function generateComment(comment: string): string {
-  return ['/**', ...comment.split('\n').map(_ => ' * ' + _), ' */'].join('\n')
+function generateComment(comment?: string, deprecated?: boolean): string {
+  const commentLines = ['/**']
+  if (deprecated) {
+    commentLines.push(' * @deprecated')
+  }
+  if (typeof comment !== 'undefined') {
+    commentLines.push(...comment.split('\n').map(_ => ' * ' + _))
+  }
+  commentLines.push(' */')
+  return commentLines.join('\n')
 }
 
 function generateStandaloneEnum(ast: TEnum, options: Options): string {
+  const containsSpecialCharacters = (key: string): boolean => /[^a-zA-Z0-9_]/.test(key)
+
   return (
-    (hasComment(ast) ? generateComment(ast.comment) + '\n' : '') +
+    (hasComment(ast) ? generateComment(ast.comment, ast.deprecated) + '\n' : '') +
     'export ' +
     (options.enableConstEnums ? 'const ' : '') +
     `enum ${toSafeString(ast.standaloneName)} {` +
     '\n' +
-    ast.params.map(({ast, keyName}) => keyName + ' = ' + generateType(ast, options)).join(',\n') +
+    ast.params
+      .map(
+        ({ast, keyName}) =>
+          (containsSpecialCharacters(keyName) ? `"${keyName}"` : keyName) + ' = ' + generateType(ast, options),
+      )
+      .join(',\n') +
     '\n' +
     '}'
   )
@@ -334,7 +351,7 @@ function generateStandaloneEnum(ast: TEnum, options: Options): string {
 
 function generateStandaloneInterface(ast: TNamedInterface, options: Options): string {
   return (
-    (hasComment(ast) ? generateComment(ast.comment) + '\n' : '') +
+    (hasComment(ast) ? generateComment(ast.comment, ast.deprecated) + '\n' : '') +
     `export interface ${toSafeString(ast.standaloneName)} ` +
     (ast.superTypes.length > 0
       ? `extends ${ast.superTypes.map(superType => toSafeString(superType.standaloneName)).join(', ')} `
@@ -348,7 +365,7 @@ function generateStandaloneType(ast: ASTWithStandaloneName, options: Options): s
     (hasComment(ast) ? generateComment(ast.comment) + '\n' : '') +
     `export type ${toSafeString(ast.standaloneName)} = ${generateType(
       omit<AST>(ast, 'standaloneName') as AST /* TODO */,
-      options
+      options,
     )}`
   )
 }

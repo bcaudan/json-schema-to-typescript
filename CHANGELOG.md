@@ -2,6 +2,47 @@
 
 *Note: This is a partial changelog, covering significant & breaking changes. For a full list of changes, please consult the [commit log](https://github.com/bcherny/json-schema-to-typescript/commits).
 
+## 15.0.0
+
+- 62cc052 Fixed bug where intersection schemas didn't generate complete types. Improved output readability for intersection types (#603)
+
+## 14.1.0
+
+- 3e2e1e9 Added `inferStringEnumKeysFromValues` option (#578)
+
+## 14.0.5
+
+- b7fee29 Added .yaml support for CLI (#598)
+
+## 14.0.2
+
+- 9ec0c70 Added .yaml support (#577)
+
+## 14.0.1
+
+- 2f29f19 Added `customName` option
+
+## 14.0.0
+
+- 967eb13 Require Node v16+
+
+## 13.1.0
+
+- f797848 Feat: Add support for `deprecated` keyword
+
+## 13.0.1
+
+- b13a6f2 Bugfix: Boolean CLI flags were not respected (#524)
+
+## 13.0.0
+
+- 05b0103 Bugfix: Parse boolean schemas as schemas, rather than as literals (#515)
+- 8f973d1 Bugfix: Fix edge case where emitted names were corrupted when using `strictIndexSignature` (#423)
+
+## 12.0.0
+
+- b73e1c7 Bugfix: Parse enums as literals, rather than as schemas (#508)
+
 ## 11.0.0
 
 This is a major release with lots of bugfixes, some of which may change emitted types.
