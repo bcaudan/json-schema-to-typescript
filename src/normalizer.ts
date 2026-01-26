@@ -1,14 +1,16 @@
 import {JSONSchemaTypeName, LinkedJSONSchema, NormalizedJSONSchema, Parent} from './types/JSONSchema'
 import {appendToDescription, escapeBlockComment, isSchemaLike, justName, toSafeString, traverse} from './utils'
 import {Options} from './'
+import {applySchemaTyping} from './applySchemaTyping'
 import {DereferencedPaths} from './resolver'
+import {isDeepStrictEqual} from 'util'
 
 type Rule = (
   schema: LinkedJSONSchema,
   fileName: string,
   options: Options,
   key: string | null,
-  dereferencedPaths: DereferencedPaths
+  dereferencedPaths: DereferencedPaths,
 ) => void
 const rules = new Map<string, Rule>()
 
@@ -20,6 +22,9 @@ function isObjectType(schema: LinkedJSONSchema) {
 }
 function isArrayType(schema: LinkedJSONSchema) {
   return schema.items !== undefined || hasType(schema, 'array') || hasType(schema, 'any')
+}
+function isEnumTypeWithoutTsEnumNames(schema: LinkedJSONSchema) {
+  return schema.type === 'string' && schema.enum !== undefined && schema.tsEnumNames === undefined
 }
 
 rules.set('Remove `type=["null"]` if `enum=[null]`', schema => {
@@ -63,7 +68,7 @@ rules.set('Transform id to $id', (schema, fileName) => {
   }
   if (schema.id && schema.$id && schema.id !== schema.$id) {
     throw ReferenceError(
-      `Schema must define either id or $id, not both. Given id=${schema.id}, $id=${schema.$id} in ${fileName}`
+      `Schema must define either id or $id, not both. Given id=${schema.id}, $id=${schema.$id} in ${fileName}`,
     )
   }
   if (schema.id) {
@@ -110,7 +115,7 @@ rules.set('Add JSDoc comments for minItems and maxItems', schema => {
   }
   const commentsToAppend = [
     'minItems' in schema ? `@minItems ${schema.minItems}` : '',
-    'maxItems' in schema ? `@maxItems ${schema.maxItems}` : ''
+    'maxItems' in schema ? `@maxItems ${schema.maxItems}` : '',
   ].filter(Boolean)
   if (commentsToAppend.length) {
     schema.description = appendToDescription(schema.description, ...commentsToAppend)
@@ -202,10 +207,15 @@ rules.set('Make extends always an array, if it is defined', schema => {
   }
 })
 
-rules.set('Transform $defs to definitions', schema => {
-  if (schema.$defs) {
-    schema.definitions = schema.$defs
-    delete schema.$defs
+rules.set('Transform definitions to $defs', (schema, fileName) => {
+  if (schema.definitions && schema.$defs && !isDeepStrictEqual(schema.definitions, schema.$defs)) {
+    throw ReferenceError(
+      `Schema must define either definitions or $defs, not both. Given id=${schema.id} in ${fileName}`,
+    )
+  }
+  if (schema.definitions) {
+    schema.$defs = schema.definitions
+    delete schema.definitions
   }
 })
 
@@ -216,11 +226,33 @@ rules.set('Transform const to singleton enum', schema => {
   }
 })
 
+rules.set('Add tsEnumNames to enum types', (schema, _, options) => {
+  if (isEnumTypeWithoutTsEnumNames(schema) && options.inferStringEnumKeysFromValues) {
+    schema.tsEnumNames = schema.enum?.map(String)
+  }
+})
+
+// Precalculation of the schema types is necessary because the ALL_OF type
+// is implemented in a way that mutates the schema object. Detection of the
+// NAMED_SCHEMA type relies on the presence of the $id property, which is
+// hoisted to a parent schema object during the ALL_OF type implementation,
+// and becomes unavailable if the same schema is used in multiple places.
+//
+// Precalculation of the `ALL_OF` intersection schema is necessary because
+// the intersection schema needs to participate in the schema cache during
+// the parsing step, so it cannot be re-calculated every time the schema
+// is encountered.
+rules.set('Pre-calculate schema types and intersections', schema => {
+  if (schema !== null && typeof schema === 'object') {
+    applySchemaTyping(schema)
+  }
+})
+
 export function normalize(
   rootSchema: LinkedJSONSchema,
   dereferencedPaths: DereferencedPaths,
   filename: string,
-  options: Options
+  options: Options,
 ): NormalizedJSONSchema {
   rules.forEach(rule => traverse(rootSchema, (schema, key) => rule(schema, filename, options, key, dereferencedPaths)))
   return rootSchema as NormalizedJSONSchema
